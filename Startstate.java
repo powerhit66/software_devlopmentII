@@ -33,19 +33,38 @@ public class Startstate extends JFrame {
         Dimension dimOfPanel;
         boolean start = false;
         JButton startButton;
+        String startText, modeText;
+        Font romanItalic;
+        int fontSize = 16;
+
+        int buttonHeight=40, buttonWidth=100;
+        int modeHeight=40, modeWidth = 60;
 
         /* コンストラクタ（ゲーム開始時の初期化）*/
         public MyJPanel() {
             // 全体の設定
+            setLayout(null);
+            romanItalic = new Font("Times New Roman", Font.ITALIC, fontSize);
+
+            /**
+             * 開始ボタンの関する設定
+            */
+            startText = "記憶マッチング";
             startButton = new JButton("press to start");
             startButton.addActionListener(this);
+            startButton.setBounds(windowWidth/2-buttonWidth, windowHeight-buttonHeight*2, 100, 40);
             add(startButton);
+
 
             /**
               *　難易度の設置：プルダウンメニューを利用
               *　配列を使い、JComboBoxを宣言する場合、ArrayListみたいに型の明示が必要
             */
+
+            //難易度用の整数型配列
             Integer[] difficulty = {1, 2, 3};
+
+            modeText = "難易度設定:";
 
             //これだとエラーが出る。
             //JComboBox petList = new JComboBox(petStrings);
@@ -53,14 +72,17 @@ public class Startstate extends JFrame {
             //これならOK
             JComboBox<Integer> mode_menu = new JComboBox<Integer>(difficulty);
             mode_menu.addActionListener(this);
+            mode_menu.setBounds(windowWidth/2+2*modeWidth, windowHeight-2*modeHeight, modeWidth, modeHeight);
             add(mode_menu);
             }
 
         /* パネル上の描画 */
         public void paintComponent(Graphics g) {
-                dimOfPanel = getSize();
                 super.paintComponent(g);
-                g.drawString("記憶マッチング", windowWidth, windowHeight);
+                g.setFont(romanItalic);
+                dimOfPanel = getSize();
+                g.drawString(startText, windowWidth/2-fontSize * startText.length()/2, windowHeight/2);
+                g.drawString(modeText, windowWidth/2+modeWidth/2, windowHeight-5*modeHeight/4);
             }
 
         /* 一定時間ごとの処理（ActionListener に対する処理）*/
