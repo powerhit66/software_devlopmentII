@@ -7,10 +7,10 @@ public class EndState extends JFrame {
     final int windowHeight = 500;
 
     public static void main(String[] args){
-        new EndState();
+        new EndState(args);
     }
 
-    public EndState() {
+    public EndState(String[] args) {
         Dimension dimOfScreen =
                Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -21,7 +21,7 @@ public class EndState extends JFrame {
         setTitle("Software Development II");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        MyJPanel panel= new MyJPanel();
+        MyJPanel panel= new MyJPanel(args);
         Container c = getContentPane();
         c.add(panel);
         setVisible(true);
@@ -40,16 +40,18 @@ public class EndState extends JFrame {
         String result;
 
         //結果を保存する変数：1なら勝利、0なら負け
-        int verdict = 1;
+        String verdict;
 
         int buttonHeight=40, buttonWidth=100;
 
         /* コンストラクタ（ゲーム開始時の初期化）*/
-        public MyJPanel() {
+        public MyJPanel(String[] args) {
             // 全体の設定
             setLayout(null);
             romanItalic = new Font("Times New Roman", Font.ITALIC, fontSize);
-            if(verdict==1)
+
+            verdict = args[0];
+            if(verdict=="1")
             {
                 result = "ペアを全部見つけた！おめでとう！";
             }
@@ -84,6 +86,11 @@ public class EndState extends JFrame {
             if(e.getSource()==endButton)
             {
                 System.exit(0);
+            }
+            else if(e.getSource()==restartButton)
+            {
+                Startstate.main(null);
+                dispose();
             }
             repaint();
         }

@@ -9,10 +9,10 @@ public class Memory_matching extends JFrame {
     final int windowHeight = 500;
 
     public static void main(String[] args){
-        new Memory_matching();
+        new Memory_matching(args);
     }
 
-    public Memory_matching() {
+    public Memory_matching(String[] args) {
         Dimension dimOfScreen =
                Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -23,7 +23,7 @@ public class Memory_matching extends JFrame {
         setTitle("Software Development II");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        MyJPanel panel= new MyJPanel();
+        MyJPanel panel= new MyJPanel(args);
         Container c = getContentPane();
         c.add(panel);
         setVisible(true);
@@ -41,7 +41,7 @@ public class Memory_matching extends JFrame {
         boolean start = false;
 
         //難易度
-        int difficulty = 3;
+        int difficulty;
 
         //画像の数
         int numOfPic;
@@ -50,7 +50,7 @@ public class Memory_matching extends JFrame {
         image[] imgList;
 
         //ゲーム時間
-        int sec = 60;
+        int sec;
 
         Timer timer;
         Timer timer2;
@@ -64,8 +64,14 @@ public class Memory_matching extends JFrame {
         image[] clickedImage;
         int clickedCounter;
 
+        //次の画面にパスする配列
+        String[] passable;
+
+        //マッチングしたペア数
+        int pair;
+
         /* コンストラクタ（ゲーム開始時の初期化）*/
-        public MyJPanel() {
+        public MyJPanel(String[] args) {
             // 全体の設定
             setLayout(null);
 
@@ -75,6 +81,19 @@ public class Memory_matching extends JFrame {
             timer = new Timer(1000, this);
             timer2 = new Timer(300, this);
             timer.start();
+
+            try{
+                difficulty = Integer.parseInt(args[0]);
+            }
+            catch(ClassCastException ex)
+            {
+                //予想外の場合、難易度を1に
+                difficulty = 1;
+            }
+
+            //次の画面用の配列の準備
+            passable = new String[1];
+            passable[0] = "0";
 
             //難易度により画像数が違う
             switch(difficulty){
@@ -88,6 +107,10 @@ public class Memory_matching extends JFrame {
                     numOfPic = 16;
                     break;
             }
+
+            //秒数も違う
+            sec = difficulty * 40;
+
             imgList = new image[numOfPic*2];
             clickedImage = new image[2];
 
@@ -176,18 +199,18 @@ public class Memory_matching extends JFrame {
                 {
                     timer.stop();
                     timer2.stop();
+                    passable[0] = "0";
+                    EndState.main(passable);
+                    dispose();
                 }
                 repaint();
             }
             else if(e.getSource()==timer2)
             {
-                if(clickedCounter==2)
-                {
-                    //タイマーの時間を利用、プレイヤーの間違ったペアを少しだけの間表示させる
-                    clickedImage[0].clicked = clickedImage[1].clicked = false;
-                    clickedCounter = 0;
-                    timer2.stop();
-                }
+                //タイマーの時間を利用、プレイヤーの間違ったペアを少しだけの間表示させる
+                clickedImage[0].clicked = clickedImage[1].clicked = false;
+                clickedCounter = 0;
+                timer2.stop();
             }
         }
 
@@ -217,7 +240,7 @@ public class Memory_matching extends JFrame {
                     imgList[columns*(j-1)+(i-1)].clicked = false;
                     clickedCounter--;
                 }
-                else
+                else if(!imgList[columns*(j-1)+(i-1)].clicked)
                 {
                     imgList[columns*(j-1)+(i-1)].clicked = true;
 
@@ -232,11 +255,22 @@ public class Memory_matching extends JFrame {
                     {
                         clickedImage[0].paired = clickedImage[1].paired = true;
                         clickedCounter = 0;
+                        pair ++;
+
+                        if(pair==numOfPic)
+                        {
+                            timer.stop();
+                            passable[0] = "1";
+                            removeAll();
+                            EndState.main(passable);
+                            dispose();
+                        }
                     }
-                }
-                else
-                {
-                    timer2.start();
+                    
+                    else
+                    {
+                        timer2.start();
+                    }
                 }
                 repaint();
             }

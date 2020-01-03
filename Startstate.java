@@ -37,6 +37,12 @@ public class Startstate extends JFrame {
         Font romanItalic;
         int fontSize = 16;
 
+        //別の画面にパスする配列
+        String[] passable;
+
+        //プルダウンメニュー
+        JComboBox<Integer> mode_menu;
+
         int buttonHeight=40, buttonWidth=100;
         int modeHeight=40, modeWidth = 60;
 
@@ -54,8 +60,7 @@ public class Startstate extends JFrame {
             startButton.addActionListener(this);
             startButton.setBounds(windowWidth/2-buttonWidth, windowHeight-buttonHeight*2, 100, 40);
             add(startButton);
-
-
+            
             /**
               *　難易度の設置：プルダウンメニューを利用
               *　配列を使い、JComboBoxを宣言する場合、ArrayListみたいに型の明示が必要
@@ -70,10 +75,12 @@ public class Startstate extends JFrame {
             //JComboBox petList = new JComboBox(petStrings);
 
             //これならOK
-            JComboBox<Integer> mode_menu = new JComboBox<Integer>(difficulty);
+            mode_menu = new JComboBox<Integer>(difficulty);
             mode_menu.addActionListener(this);
             mode_menu.setBounds(windowWidth/2+2*modeWidth, windowHeight-2*modeHeight, modeWidth, modeHeight);
             add(mode_menu);
+
+            passable = new String[1];
             }
 
         /* パネル上の描画 */
@@ -87,7 +94,12 @@ public class Startstate extends JFrame {
 
         /* 一定時間ごとの処理（ActionListener に対する処理）*/
         public void actionPerformed(ActionEvent e) {
-            repaint();
+            if(e.getSource()==startButton)
+            {
+                passable[0] = mode_menu.getSelectedItem().toString();
+                Memory_matching.main(passable);
+                dispose();
+            }
         }
 
         /* MouseListener に対する処理 */
