@@ -18,19 +18,19 @@ public class Startstate extends JFrame {
                   dimOfScreen.height/2 - windowHeight/2,
                   windowWidth, windowHeight);
         setResizable(false);
-        setTitle("Software Development II");
+        setTitle("Memory Matching");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         MyJPanel panel= new MyJPanel();
         Container c = getContentPane();
         c.add(panel);
+        
         setVisible(true);
     }
 
     public class MyJPanel extends JPanel implements
-       ActionListener, MouseListener, MouseMotionListener {
+       ActionListener, MouseListener {
         /* 全体の設定に関する変数 */
-        Dimension dimOfPanel;
         boolean start = false;
         JButton startButton;
         String startText, modeText;
@@ -80,6 +80,7 @@ public class Startstate extends JFrame {
             mode_menu.setBounds(windowWidth/2+2*modeWidth, windowHeight-2*modeHeight, modeWidth, modeHeight);
             add(mode_menu);
 
+            //次の画面に渡す値のための配列の初期化
             passable = new String[1];
             }
 
@@ -87,15 +88,16 @@ public class Startstate extends JFrame {
         public void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 g.setFont(romanItalic);
-                dimOfPanel = getSize();
                 g.drawString(startText, windowWidth/2-fontSize * startText.length()/2, windowHeight/2);
                 g.drawString(modeText, windowWidth/2+modeWidth/2, windowHeight-5*modeHeight/4);
             }
 
         /* 一定時間ごとの処理（ActionListener に対する処理）*/
         public void actionPerformed(ActionEvent e) {
+            //スタートボタンが押されたら、次の画面に遷移し、現在の画面を消す
             if(e.getSource()==startButton)
             {
+                //難易度を次の画面に渡す
                 passable[0] = mode_menu.getSelectedItem().toString();
                 Memory_matching.main(passable);
                 dispose();
@@ -121,23 +123,6 @@ public class Startstate extends JFrame {
 
         // マウスが領域内に入る
         public void mouseEntered(MouseEvent e) {
-        }
-
-        /* MouseMotionListener に対する処理 */
-        // マウスを動かす
-        public void mouseMoved(MouseEvent e) {
-        }
-
-        // マウスをドラッグする
-        public void mouseDragged(MouseEvent e) {
-        }
-
-        /* 画像ファイルから Image クラスへの変換 */
-        public Image getImg(String filename) {
-            ImageIcon icon = new ImageIcon(filename);
-            Image img = icon.getImage();
-
-            return img;
         }
     }
 }

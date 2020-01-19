@@ -7,10 +7,10 @@ public class EndState extends JFrame {
     final int windowHeight = 500;
 
     public static void main(String[] args){
-        new EndState(args);
+        new EndState(args[0]);
     }
 
-    public EndState(String[] args) {
+    public EndState(String arg) {
         Dimension dimOfScreen =
                Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -18,19 +18,18 @@ public class EndState extends JFrame {
                   dimOfScreen.height/2 - windowHeight/2,
                   windowWidth, windowHeight);
         setResizable(false);
-        setTitle("Software Development II");
+        setTitle("Memory Matching");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        MyJPanel panel= new MyJPanel(args);
+        MyJPanel panel= new MyJPanel(arg);
         Container c = getContentPane();
         c.add(panel);
         setVisible(true);
     }
 
     public class MyJPanel extends JPanel implements
-       ActionListener, MouseListener, MouseMotionListener {
+       ActionListener, MouseListener {
         /* 全体の設定に関する変数 */
-        Dimension dimOfPanel;
         boolean start = false;
         JButton endButton, restartButton;
         Font romanItalic;
@@ -45,12 +44,12 @@ public class EndState extends JFrame {
         int buttonHeight=40, buttonWidth=100;
 
         /* コンストラクタ（ゲーム開始時の初期化）*/
-        public MyJPanel(String[] args) {
+        public MyJPanel(String arg) {
             // 全体の設定
             setLayout(null);
             romanItalic = new Font("Times New Roman", Font.ITALIC, fontSize);
 
-            verdict = args[0];
+            verdict = arg;
             if(verdict=="1")
             {
                 result = "ペアを全部見つけた！おめでとう！";
@@ -77,7 +76,6 @@ public class EndState extends JFrame {
         public void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 g.setFont(romanItalic);
-                dimOfPanel = getSize();
                 g.drawString(result, windowWidth/2-fontSize * result.length()/2, windowHeight/2);
             }
 
@@ -114,15 +112,6 @@ public class EndState extends JFrame {
 
         // マウスが領域内に入る
         public void mouseEntered(MouseEvent e) {
-        }
-
-        /* MouseMotionListener に対する処理 */
-        // マウスを動かす
-        public void mouseMoved(MouseEvent e) {
-        }
-
-        // マウスをドラッグする
-        public void mouseDragged(MouseEvent e) {
         }
     }
 }

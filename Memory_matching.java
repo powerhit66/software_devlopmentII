@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
 
@@ -9,10 +8,10 @@ public class Memory_matching extends JFrame {
     final int windowHeight = 500;
 
     public static void main(String[] args){
-        new Memory_matching(args);
+        new Memory_matching(args[0]);
     }
 
-    public Memory_matching(String[] args) {
+    public Memory_matching(String arg) {
         Dimension dimOfScreen =
                Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -20,22 +19,21 @@ public class Memory_matching extends JFrame {
                   dimOfScreen.height/2 - windowHeight/2,
                   windowWidth, windowHeight);
         setResizable(false);
-        setTitle("Software Development II");
+        setTitle("Memory Matching");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        MyJPanel panel= new MyJPanel(args);
+        MyJPanel panel= new MyJPanel(arg);
         Container c = getContentPane();
         c.add(panel);
         setVisible(true);
     }
 
     public class MyJPanel extends JPanel implements
-       ActionListener, MouseListener, MouseMotionListener {
+       ActionListener, MouseListener {
         /* 全体の設定に関する変数 */
 
-        //画像の個数/行
+        //列数
         int columns = 8;
-        Dimension dimOfPanel;
 
         //ゲーム開始の変数
         boolean start = false;
@@ -52,9 +50,13 @@ public class Memory_matching extends JFrame {
         //ゲーム時間
         int sec;
 
+        //タイマー：timer:時間制限, timer2:画像を元に戻す
         Timer timer;
         Timer timer2;
+
         Random rand;
+
+        //画像の列数
         int rows;
 
         //マウスの位置
@@ -70,8 +72,11 @@ public class Memory_matching extends JFrame {
         //マッチングしたペア数
         int pair;
 
+        //マウスがどの枠にあるかの変数
+        int gridX, gridY;
+
         /* コンストラクタ（ゲーム開始時の初期化）*/
-        public MyJPanel(String[] args) {
+        public MyJPanel(String arg) {
             // 全体の設定
             setLayout(null);
 
@@ -79,11 +84,13 @@ public class Memory_matching extends JFrame {
 
             //タイマーの設定、1秒に一回
             timer = new Timer(1000, this);
-            timer2 = new Timer(300, this);
             timer.start();
 
+            //タイマー2は0.3秒
+            timer2 = new Timer(100, this);
+
             try{
-                difficulty = Integer.parseInt(args[0]);
+                difficulty = Integer.parseInt(arg);
             }
             catch(ClassCastException ex)
             {
@@ -108,7 +115,7 @@ public class Memory_matching extends JFrame {
                     break;
             }
 
-            //秒数も違う
+            //秒数が難易度*40
             sec = difficulty * 40;
 
             imgList = new image[numOfPic*2];
@@ -116,7 +123,7 @@ public class Memory_matching extends JFrame {
 
             rand = new Random();
 
-            //画像数/行
+            //行数
             rows = numOfPic*2/columns;
 
             //画像の取得
@@ -152,7 +159,6 @@ public class Memory_matching extends JFrame {
         /* パネル上の描画 */
         public void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                dimOfPanel = getSize();
 
                 //秒数の描画
                 g.drawString(Integer.toString(sec), 50, 50);
@@ -164,6 +170,10 @@ public class Memory_matching extends JFrame {
                     {
                         if(imgList[i*columns+j].clicked || imgList[i*columns+j].paired)
                         g.drawImage(imgList[i*columns+j].imgSource, imgList[i*columns+j].imgX, imgList[i*columns+j].imgY, image.imgSize, image.imgSize, this);
+
+                        //ペアになった画像に線を引く
+                        if(imgList[i*columns+j].paired)
+                        g.drawLine(imgList[(i)*columns+(j)].imgX, imgList[(i)*columns+(j)].imgY, imgList[(i)*columns+(j)].imgX+image.imgSize, imgList[(i)*columns+(j)].imgY+image.imgSize);
                     }
                 }
 
@@ -178,23 +188,15 @@ public class Memory_matching extends JFrame {
                     //枠線の描画：横
                     g.drawLine(image.imgSize, image.imgSize*(i+1), image.imgSize*(columns+1), image.imgSize*(i+1));
                 }
-
-                //ペアになった画像に線を引く
-                for(int i=0; i<rows; i++)
-                {
-                    for(int j=0; j<columns; j++)
-                    {
-                        if(imgList[i*columns+j].paired)
-                        g.drawLine(imgList[(i)*columns+(j)].imgX, imgList[(i)*columns+(j)].imgY, imgList[(i)*columns+(j)].imgX+image.imgSize, imgList[(i)*columns+(j)].imgY+image.imgSize);
-                    }
-                }
             }
 
         /* 一定時間ごとの処理（ActionListener に対する処理）*/
         public void actionPerformed(ActionEvent e) {
+            //タイマーなら、ゲーム時間カウントダウンする
             if(e.getSource()==timer)
             {
                 sec --;
+                //secが0になると、ゲーム終了、次の画面に
                 if(sec==0)
                 {
                     timer.stop();
@@ -211,6 +213,8 @@ public class Memory_matching extends JFrame {
                 clickedImage[0].clicked = clickedImage[1].clicked = false;
                 clickedCounter = 0;
                 timer2.stop();
+                timer = new Timer(1000, this);
+                timer.start();
             }
         }
 
@@ -221,58 +225,63 @@ public class Memory_matching extends JFrame {
         
         // マウスボタンを押下する
         public void mousePressed(MouseEvent e) {
-            mouseX = e.getX();
-            mouseY = e.getY();
-            int i, j;
-
-            //マウスの位置をキャッチし、画像群の中にあるかどうか判断
-            if(mouseX >=image.imgSize && mouseX <=image.imgSize*(columns+1) 
-            && mouseY >= image.imgSize && mouseY <=image.imgSize*(rows+1)
-            && clickedCounter<2
-            && timer.isRunning())
+            if(!timer2.isRunning())
             {
-                i = mouseX / image.imgSize;
-                j = mouseY / image.imgSize;
+                mouseX = e.getX();
+                mouseY = e.getY();
 
-                //falseならtrue(画像を表示させる)に、trueならfalseに
-                if(imgList[columns*(j-1)+(i-1)].clicked && !(imgList[columns*(j-1)+(i-1)].paired))
+                //マウスの位置をキャッチし、画像群の中にあるかどうか判断
+                if(mouseX >=image.imgSize && mouseX <=image.imgSize*(columns+1) 
+                && mouseY >= image.imgSize && mouseY <=image.imgSize*(rows+1)
+                && clickedCounter<2
+                && timer.isRunning())
                 {
-                    imgList[columns*(j-1)+(i-1)].clicked = false;
-                    clickedCounter--;
-                }
-                else if(!imgList[columns*(j-1)+(i-1)].clicked)
-                {
-                    imgList[columns*(j-1)+(i-1)].clicked = true;
+                    gridX = mouseX / image.imgSize;
+                    gridY = mouseY / image.imgSize;
 
-                    //画像クラスを保存する
-                    clickedImage[clickedCounter] = imgList[columns*(j-1)+(i-1)];
-                    clickedCounter++;
-                }
-
-                if(clickedCounter==2)
-                {
-                    if(clickedImage[0].id == clickedImage[1].id)
+                    //falseならtrue(画像を表示させる)に、trueならfalseに
+                    if(imgList[columns*(gridY-1)+(gridX-1)].clicked && !(imgList[columns*(gridY-1)+(gridX-1)].paired))
                     {
-                        clickedImage[0].paired = clickedImage[1].paired = true;
-                        clickedCounter = 0;
-                        pair ++;
+                        imgList[columns*(gridY-1)+(gridX-1)].clicked = false;
+                        clickedCounter--;
+                    }
+                    else if(!imgList[columns*(gridY-1)+(gridX-1)].clicked)
+                    {
+                        imgList[columns*(gridY-1)+(gridX-1)].clicked = true;
 
-                        if(pair==numOfPic)
+                        //画像クラスを保存する
+                        clickedImage[clickedCounter] = imgList[columns*(gridY-1)+(gridX-1)];
+                        clickedCounter++;
+                    }
+
+                    //画像が二つ選んだ場合、マッチングの判定
+                    if(clickedCounter==2)
+                    {
+                        if(clickedImage[0].id == clickedImage[1].id)
                         {
+                            clickedImage[0].paired = clickedImage[1].paired = true;
+                            clickedCounter = 0;
+                            pair ++;
+
+                            if(pair==numOfPic)
+                            {
+                                timer.stop();
+                                passable[0] = "1";
+                                removeAll();
+                                EndState.main(passable);
+                                dispose();
+                            }
+                        }
+                        
+                        else
+                        {
+                            timer2 = new Timer(100, this);
+                            timer2.start();
                             timer.stop();
-                            passable[0] = "1";
-                            removeAll();
-                            EndState.main(passable);
-                            dispose();
                         }
                     }
-                    
-                    else
-                    {
-                        timer2.start();
-                    }
+                    repaint();
                 }
-                repaint();
             }
         }
 
@@ -286,15 +295,6 @@ public class Memory_matching extends JFrame {
 
         // マウスが領域内に入る
         public void mouseEntered(MouseEvent e) {
-        }
-
-        /* MouseMotionListener に対する処理 */
-        // マウスを動かす
-        public void mouseMoved(MouseEvent e) {
-        }
-
-        // マウスをドラッグする
-        public void mouseDragged(MouseEvent e) {
         }
     }
 }
@@ -318,8 +318,7 @@ class image {
     boolean paired = false;
 
     /* 画像ファイルから Image クラスへの変換 */
-    public void getImg(String filename) {
-        ImageIcon icon = new ImageIcon(filename);
-        imgSource = icon.getImage();
+    public void getImg(String imgSource) {
+        this.imgSource = new ImageIcon(imgSource).getImage();
     }
 }
